@@ -25,8 +25,8 @@ def find_wednesday(dia):
     dia_15 = dia + timedelta(days=15 - dia.day)
 
     data_inicio = dia_15 - timedelta(days=14)
-
     dias = listar_dias(data_inicio, dia_15)
+    dias = [date.fromisoformat(dia) for dia in dias]
 
     dias.reverse()
 
