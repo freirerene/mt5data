@@ -1,8 +1,22 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import MetaTrader5 as mt5
+import pandas as pd
 
 app = FastAPI()
+
+# Mapeamento de timeframes para o MetaTrader 5
+TIMEFRAMES = {
+    "M1": mt5.TIMEFRAME_M1,
+    "M5": mt5.TIMEFRAME_M5,
+    "M15": mt5.TIMEFRAME_M15,
+    "M30": mt5.TIMEFRAME_M30,
+    "H1": mt5.TIMEFRAME_H1,
+    "H4": mt5.TIMEFRAME_H4,
+    "D1": mt5.TIMEFRAME_D1,
+    "W1": mt5.TIMEFRAME_W1,
+    "MN1": mt5.TIMEFRAME_MN1,
+}
 
 
 class TradeRequest(BaseModel):
@@ -22,6 +36,60 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     mt5.shutdown()
+
+
+@app.get("/history/{symbol}/{timeframe}")
+async def get_history(symbol: str, timeframe: str):
+    """
+    Retorna os últimos 500 candles para o símbolo e timeframe informados.
+    Formato de saída (JSON):
+    [
+        {
+            "timestamp": "2023-07-01 10:00:00",
+            "open": 1.23456,
+            "low": 1.23300,
+            "high": 1.23550,
+            "close": 1.23400
+        },
+        ...
+    ]
+    """
+
+    if timeframe not in TIMEFRAMES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Timeframe inválido. Disponíveis: {list(TIMEFRAMES.keys())}",
+        )
+
+    symbol_info = mt5.symbol_info(symbol)
+    if symbol_info is None:
+        raise HTTPException(
+            status_code=404, detail=f"Símbolo '{symbol}' não encontrado."
+        )
+
+    if not symbol_info.visible:
+        if not mt5.symbol_select(symbol, True):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Falha ao selecionar símbolo '{symbol}' no Market Watch.",
+            )
+
+    mt5_timeframe = TIMEFRAMES[timeframe]
+
+    rates = mt5.copy_rates_from_pos(symbol, mt5_timeframe, 0, 500)
+    if rates is None or len(rates) == 0:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Não foi possível obter dados de '{symbol}' no timeframe '{timeframe}'.",
+        )
+
+    df = pd.DataFrame(rates)
+    df["time"] = pd.to_datetime(df["time"], unit="s")
+
+    df.rename(columns={"time": "timestamp"}, inplace=True)
+    df = df[["timestamp", "open", "low", "high", "close"]]
+
+    return df.to_dict(orient="records")
 
 
 @app.get("/price/{symbol}")
