@@ -7,3 +7,9 @@ This script is especially useful in the Brazilian market -- or, really, any othe
 One should be able to easily adapt it to run on windows -- just put the `WINDOWS/windowsSTOCKS.py` inside your `get_stocks_history` (from `GETDATA.py`). No need to use `subprocess`.
 
 As a bonus I also wrote a little function to get the mini-futures codes
+
+## Notes
+
+This does not work via ssh. You have to have access to the desktop (so metatrader can run).
+
+Also, new server (in MTserver) to streamline the proccess.
