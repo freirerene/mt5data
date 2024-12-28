@@ -1,5 +1,5 @@
-from routers import orders, history, close
-from utils.mtfunctions import get_ticks
+from routers import orders, history
+from utils.mtfunctions import get_ticks, close
 from utils.credentials import MT_PATH, LOGIN, PASSWORD, SERVER
 
 from fastapi import FastAPI, HTTPException
