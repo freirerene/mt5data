@@ -6,7 +6,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-@router.post("/history")
+@router.get("/history")
 async def buy_order(info_request: GetHistory):
 
     df = get_history(info_request)
