@@ -66,7 +66,7 @@ def get_history(info_request: GetHistory):
     if from_date:
         from_date = f"{from_date} 18:00:00"
         from_date = datetime.fromisoformat(from_date)
-        rates = mt5.copy_rates_from_pos(symbol, mt5_timeframe, from_date, ticks)
+        rates = mt5.copy_rates_from(symbol, mt5_timeframe, from_date, ticks)
     else:
         rates = mt5.copy_rates_from_pos(symbol, mt5_timeframe, 0, ticks)
 
