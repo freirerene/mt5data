@@ -15,4 +15,4 @@ async def buy_order(
         symbol=symbol, timeframe=timeframe, ticks=ticks, from_date=from_date
     )
     df = get_history(info_request)
-    return df
+    return df.to_dict(orient="records")
